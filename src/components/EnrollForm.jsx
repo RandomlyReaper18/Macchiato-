@@ -5,10 +5,13 @@ import { maskMobile } from "../logic/loyalty.js";
 export default function EnrollForm({ mobile, onEnroll, onCancel }) {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
-    const result = onEnroll({ mobile, name });
+    setBusy(true);
+    const result = await onEnroll({ mobile, name });
+    setBusy(false);
     if (!result.ok) setError(result.message);
   };
 
@@ -29,7 +32,7 @@ export default function EnrollForm({ mobile, onEnroll, onCancel }) {
       </div>
       {error && <p className="msg msg--error" role="alert">{error}</p>}
       <div className="row">
-        <button className="btn" type="submit">Create my card</button>
+        <button className="btn" type="submit" disabled={busy}>{busy ? "Creating…" : "Create my card"}</button>
         <button className="btn btn--ghost" type="button" onClick={onCancel}>Cancel</button>
       </div>
     </form>

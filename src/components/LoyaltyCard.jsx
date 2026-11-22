@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { DEMO_NUMBERS } from "../data/customers.js";
-import { STORAGE_NOTICE } from "../data/store.js";
 import { STAMPS_PER_CARD, maskMobile } from "../logic/loyalty.js";
 import { DemoTag } from "./Decor";
 import EnrollForm from "./EnrollForm";
@@ -8,16 +6,19 @@ import PurchaseHistory from "./PurchaseHistory";
 import RewardStatus from "./RewardStatus";
 import StampProgress from "./StampProgress";
 
-export default function LoyaltyCard({ summary, persisted, onLookup, onEnroll }) {
+export default function LoyaltyCard({ summary, onLookup, onEnroll }) {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [pendingMobile, setPendingMobile] = useState(null);
+  const [busy, setBusy] = useState(false);
 
-  const submit = (e) => {
+  const submit = async (e) => {
     e.preventDefault();
     setNotice("");
-    const result = onLookup(input);
+    setBusy(true);
+    const result = await onLookup(input);
+    setBusy(false);
     if (result.ok) {
       setError("");
       setPendingMobile(null);
@@ -30,8 +31,8 @@ export default function LoyaltyCard({ summary, persisted, onLookup, onEnroll }) 
     }
   };
 
-  const enroll = (data) => {
-    const result = onEnroll(data);
+  const enroll = async (data) => {
+    const result = await onEnroll(data);
     if (result.ok) {
       setPendingMobile(null);
       setNotice(`Welcome${result.customer.name ? `, ${result.customer.name}` : ""}! Your card is ready.`);
@@ -58,7 +59,7 @@ export default function LoyaltyCard({ summary, persisted, onLookup, onEnroll }) 
             onChange={(e) => setInput(e.target.value)}
           />
         </div>
-        <button className="btn" type="submit" disabled={!input.trim()}>Load card</button>
+        <button className="btn" type="submit" disabled={busy || !input.trim()}>{busy ? "Loading…" : "Load card"}</button>
       </form>
       {error && <p className="msg msg--error" role="alert">{error}</p>}
       {notice && <p className="msg msg--ok" role="status">{notice}</p>}
@@ -66,19 +67,12 @@ export default function LoyaltyCard({ summary, persisted, onLookup, onEnroll }) 
       {pendingMobile ? (
         <EnrollForm key={pendingMobile} mobile={pendingMobile} onEnroll={enroll} onCancel={() => setPendingMobile(null)} />
       ) : !s ? (
-        <>
-          <p className="muted">No customer selected yet.</p>
-          <div className="chips">
-            <DemoTag />
-            {DEMO_NUMBERS.map((n) => (
-              <button key={n} type="button" className="chip" onClick={() => setInput(n)}>{n}</button>
-            ))}
-          </div>
-        </>
+        <p className="muted">No customer selected yet.</p>
       ) : (
         <div className="card-body">
           <p className="muted small">
-            Card for {s.customer.name ? `${s.customer.name} · ` : ""}{maskMobile(s.customer.mobile_number)}
+            Card for {s.customer.name ? `${s.customer.name} · ` : ""}{maskMobile(s.customer.mobile_number)}{" "}
+            {s.customer.is_demo && <DemoTag />}
           </p>
           <div className="card-head">
             <p><span className="count">{s.status.currentStamps}</span> <span className="of">/ {STAMPS_PER_CARD} cups</span></p>
@@ -93,13 +87,6 @@ export default function LoyaltyCard({ summary, persisted, onLookup, onEnroll }) 
           <RewardStatus summary={s} />
           <PurchaseHistory purchases={s.purchases} />
         </div>
-      )}
-
-      <p className="muted small storage-note">{STORAGE_NOTICE}</p>
-      {!persisted && (
-        <p className="msg msg--error" role="alert">
-          This browser is blocking storage, so changes will be lost when you reload.
-        </p>
       )}
     </div>
   );

@@ -4,7 +4,6 @@ import { cardStatus, isValidMobile, maskMobile, normalizeMobile, usualDrink } fr
 import {
   customerSummary, emptyState, enrollCustomer, giveReward, lookupCustomer, recordRedeemedPurchase,
 } from "../src/logic/customerService.js";
-import { buildSeedState } from "../src/data/customers.js";
 
 const buy = (state, customerId, n, drinkId = "spanish-latte", prefix = "T") => {
   let s = state;
@@ -112,40 +111,4 @@ test("rewards: staff can give one at a time, then none left", () => {
   assert.equal(given.state.rewards[0].reward_status, "redeemed");
   assert.ok(given.state.rewards[0].redeemed_at);
   assert.equal(giveReward(given.state, id).code, "none");
-});
-
-test("seed data matches what the screens promise", () => {
-  const s = buildSeedState();
-  const by = (m) => { const c = s.customers.find((x) => x.mobile_number === m); return customerSummary(s, c); };
-  assert.equal(by("09123456789").status.currentStamps, 1);
-  assert.equal(by("09556667777").status.currentStamps, 0);
-  assert.equal(by("09987654321").status.currentStamps, 9);
-  assert.ok(by("09445556666").status.complete);
-  assert.equal(by("09445556666").waitingRewards, 1);
-  assert.equal(by("09334445555").usual.name, "Iced Caramel Macchiato");
-  const faye = by("09223334444");
-  assert.equal(faye.status.currentStamps, 2);
-  assert.equal(faye.waitingRewards, 0);
-  assert.equal(faye.rewards[0].reward_status, "redeemed");
-  const codes = s.purchases.map((p) => p.purchase_code);
-  assert.equal(new Set(codes).size, codes.length, "purchase codes are unique");
-});
-
-test("storage: saves, reloads, and recovers from corrupt data", async () => {
-  const mem = new Map();
-  globalThis.localStorage = {
-    getItem: (k) => (mem.has(k) ? mem.get(k) : null),
-    setItem: (k, v) => mem.set(k, String(v)),
-    removeItem: (k) => mem.delete(k),
-  };
-  const { loadState, saveState, STORAGE_KEY, resetState } = await import("../src/data/store.js");
-  const first = loadState();
-  assert.ok(first.customers.length > 0, "seeded on first run");
-  const enrolled = enrollCustomer(first, { mobile: "09000000001", name: "Zed" });
-  saveState(enrolled.state);
-  assert.ok(loadState().customers.some((c) => c.mobile_number === "09000000001"), "survives reload");
-  mem.set(STORAGE_KEY, "{not json");
-  assert.ok(loadState().customers.length > 0, "corrupt data falls back to seed");
-  saveState(enrolled.state);
-  assert.ok(!resetState().customers.some((c) => c.mobile_number === "09000000001"), "reset removes enrolled customers");
 });

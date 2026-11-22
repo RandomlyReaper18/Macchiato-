@@ -258,3 +258,25 @@ a { color: inherit; }
 .stamp--new { animation: stamp-pop .45s ease-out; }
 @keyframes stamp-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { .stamp, .stamp--new { transition: none; animation: none; } }
+
+/* ---------- Phase 3: database status, staff sign-in ---------- */
+.db-status { margin-top: .6rem; }
+.db-status__btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font: 700 .85rem var(--mono); color: var(--cream);
+  background: transparent; border: 2px dotted var(--olive); border-radius: 999px;
+  padding: .45rem .9rem; min-height: 44px; cursor: pointer;
+}
+.db-status__btn:hover { background: rgba(244, 232, 205, .08); }
+.db-dot { width: .7rem; height: .7rem; border-radius: 50%; background: var(--olive); flex: none; }
+.db-status--connected .db-dot { background: #8DB255; }
+.db-status--connecting .db-dot { background: var(--caramel); animation: db-pulse 1s ease-in-out infinite; }
+.db-status--disconnected .db-dot { background: #D9A441; }
+.db-status--error .db-dot { background: #D9694F; }
+.db-status__detail { margin: .5rem auto 0; max-width: 34rem; color: var(--olive); }
+@keyframes db-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .db-status--connecting .db-dot { animation: none; } }
+.link-btn {
+  background: none; border: 0; padding: .35rem .25rem; min-height: 32px; cursor: pointer;
+  font: inherit; color: var(--rust); text-decoration: underline;
+}
