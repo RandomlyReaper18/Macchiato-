@@ -5,7 +5,7 @@ import Navigation from "./Navigation";
 export default function Header() {
   return (
     <header className="site-header">
-      <a className="brand" href="#top">
+      <a className="brand" href="/">
         <Bean size={26} />
         <span>{SHOP.name}</span>
       </a>

@@ -17,6 +17,7 @@ export default function App() {
   const [summary, setSummary] = useState(null);
   const db = useDbStatus();
   const staff = useStaffSession();
+  const isLoginPage = window.location.pathname === "/login";
 
   const lookup = async (raw) => {
     const result = await api.lookup(raw);
@@ -47,20 +48,25 @@ export default function App() {
     <>
       <Header />
       <main>
-        <HeroSection />
-        <MenuSection />
-        <section className="section" id="card">
-          <div className="wrap two-col">
-            <LoyaltyCard summary={summary} onLookup={lookup} onEnroll={enroll} />
-            <RedeemCodePanel onRedeem={redeem} />
-          </div>
-        </section>
-        <section className="section" id="staff">
-          <div className="wrap wrap--narrow">
-            <StaffSection staff={staff} api={api} />
-          </div>
-        </section>
-        <PromotionSection />
+        {isLoginPage ? (
+          <section className="section" id="staff">
+            <div className="wrap wrap--narrow">
+              <StaffSection staff={staff} api={api} />
+            </div>
+          </section>
+        ) : (
+          <>
+            <HeroSection />
+            <MenuSection />
+            <section className="section" id="card">
+              <div className="wrap two-col">
+                <LoyaltyCard summary={summary} onLookup={lookup} onEnroll={enroll} />
+                <RedeemCodePanel onRedeem={redeem} />
+              </div>
+            </section>
+            <PromotionSection />
+          </>
+        )}
       </main>
       <Footer db={db} />
     </>
